@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "AtradeI": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
