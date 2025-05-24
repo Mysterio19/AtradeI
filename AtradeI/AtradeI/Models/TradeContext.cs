@@ -10,10 +10,9 @@ namespace AtradeI.Models
     {
         public long Timestamp { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         public string Symbol { get; set; } = "BTCUSDT";
-        public Indicators Indicators { get; set; }
-        public MarketStructure MarketStructure { get; set; }
         public List<string> News { get; set; }
         public GlobalMetrics GlobalMetrics { get; set; }
         public List<Position> Positions { get; set; }
+        public List<TimeframeAnalysis> Timeframes { get; set; }
     }
 }

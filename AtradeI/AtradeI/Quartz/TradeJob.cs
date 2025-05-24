@@ -20,13 +20,23 @@ namespace QuartzJobs
         {
             var data = await _aggregator.BuildContextAsync("BTCUSDT");
             var decision = await _ai.GetDecisionAsync(data);
-            Console.WriteLine($"[{DateTime.UtcNow}] AI Decision: {decision}");
 
-            if ((decision == "BUY" || decision == "SELL") && data.Positions.All(p => p.Side != decision))
-            {
-                var success = await _executor.ExecuteOrderAsync(data.Symbol, decision, 0.01m);
-                Console.WriteLine(success ? "Order executed." : "Order execution failed.");
-            }
+
+            Console.WriteLine($"[{DateTime.UtcNow}]" +
+                $" Pair: {decision.Pair}," +
+                $" AI Decision: {decision.Decision}," +
+                $" Reason: {decision.Reason}," +
+                $" Analyzed data: {decision.Analyzed_Data}," +
+                $" Confidence: {decision.Confidence}," +
+                $" Time (UTC): {decision.Time}," +
+                $" Current price: {decision.Current_Price}"
+                );
+
+            //if ((decision == "BUY" || decision == "SELL") && data.Positions.All(p => p.Side != decision))
+            //{
+            //    var success = await _executor.ExecuteOrderAsync(data.Symbol, decision, 0.01m);
+            //    Console.WriteLine(success ? "Order executed." : "Order execution failed.");
+            //}
         }
     }
 }

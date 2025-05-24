@@ -1,29 +1,46 @@
-﻿using AtradeI.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using AtradeI.Models;
 
 namespace AtradeI.Services
 {
     public class IndicatorCalculator
     {
-        public Indicators ComputeIndicators(List<Candle> candles)
+        public Indicators ComputePartialIndicators(List<Candle> candles)
         {
             var closes = candles.Select(c => c.Close).ToList();
-            var ema9 = EMA(closes, 9);
-            var ema50 = EMA(closes, 50);
-            var rsi = RSI(closes, 14);
-            var (macdLine, signalLine) = MACD(closes);
-            var atr = ATR(candles, 14);
+
+            double rsi = double.NaN;
+            double ema9 = double.NaN;
+            double ema50 = double.NaN;
+            Macd? macd = null;
+            double atr = double.NaN;
+
+            if (closes.Count >= 14 + 1)
+                rsi = RSI(closes, 14);
+
+            if (closes.Count >= 9)
+                ema9 = EMA(closes, 9).LastOrDefault();
+
+            if (closes.Count >= 50)
+                ema50 = EMA(closes, 50).LastOrDefault();
+
+            if (closes.Count >= 26 + 9)
+            {
+                var (line, signal) = MACD(closes);
+                macd = new Macd { Line = line, Signal = signal };
+            }
+
+            if (candles.Count >= 14 + 1)
+                atr = ATR(candles, 14);
 
             return new Indicators
             {
                 RSI = rsi,
-                MACD = new Macd { Line = macdLine, Signal = signalLine },
-                EMA9 = ema9.LastOrDefault(),
-                EMA50 = ema50.LastOrDefault(),
+                EMA9 = ema9,
+                EMA50 = ema50,
+                MACD = macd,
                 ATR = atr
             };
         }

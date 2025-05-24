@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -10,6 +10,14 @@ namespace AtradeI.Services
     public class NewsFetcher
     {
         private readonly HttpClient _http;
+        private readonly string[] _sources = new[]
+        {
+            "https://www.coindesk.com/arc/outboundfeeds/rss/",
+            "https://cointelegraph.com/rss",
+            "https://cryptoslate.com/feed/"
+        };
+
+        private const int MaxHeadlines = 20;
 
         public NewsFetcher(HttpClient httpClient)
         {
@@ -18,28 +26,41 @@ namespace AtradeI.Services
 
         public async Task<List<string>> GetNewsHeadlinesAsync()
         {
-            var headlines = new List<string>();
-            try
+            var headlines = new HashSet<string>();
+
+            foreach (var url in _sources)
             {
-                var rss = await _http.GetStreamAsync("https://www.coindesk.com/arc/outboundfeeds/rss/");
-                using var reader = XmlReader.Create(rss);
-                while (reader.Read())
+                try
                 {
-                    if (reader.NodeType == XmlNodeType.Element && reader.Name == "title")
+                    var rss = await _http.GetStreamAsync(url);
+                    using var reader = XmlReader.Create(rss);
+                    while (reader.Read() && headlines.Count < MaxHeadlines)
                     {
-                        var title = reader.ReadElementContentAsString();
-                        if (!string.IsNullOrWhiteSpace(title) && !title.Contains("CoinDesk"))
-                            headlines.Add(title);
-                        if (headlines.Count >= 5)
-                            break;
+                        if (reader.NodeType == XmlNodeType.Element && reader.Name == "title")
+                        {
+                            var title = reader.ReadElementContentAsString();
+                            if (!string.IsNullOrWhiteSpace(title) && !IsSourceTitle(title))
+                                headlines.Add(title.Trim());
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ Failed to fetch news from {url}: {ex.Message}");
+                }
             }
-            catch
-            {
-                headlines.Add("News fetch failed");
-            }
-            return headlines;
+
+            if (!headlines.Any())
+                headlines.Add("⚠️ News fetch failed");
+
+            return headlines.ToList();
+        }
+
+        private bool IsSourceTitle(string title)
+        {
+            return title.Contains("CoinDesk", StringComparison.OrdinalIgnoreCase)
+                || title.Contains("Cointelegraph", StringComparison.OrdinalIgnoreCase)
+                || title.Contains("CryptoSlate", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

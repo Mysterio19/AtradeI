@@ -16,11 +16,12 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddSingleton<NewsFetcher>();
         services.AddSingleton<GlobalMetricsService>();
         services.AddSingleton<DataAggregatorService>();
+        services.AddSingleton<MultiTimeframeService>();
 
         // API ключи (рекомендуется вынести в appsettings.json)
         var bybitApiKey = "your_bybit_api_key";
         var bybitApiSecret = "your_bybit_api_secret";
-        var openAiKey = "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";
+        var openAiKey = "*";
 
         // Сервисы с зависимостью от ключей
         services.AddSingleton(sp =>
